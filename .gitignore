@@ -1,0 +1,3 @@
+minv-server
+data/*
+!data/config.toml

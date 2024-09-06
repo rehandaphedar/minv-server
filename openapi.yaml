@@ -1,0 +1,393 @@
+openapi: 3.0.0
+info:
+  title: minv
+  description: A minimalist video sharing application.
+  contact:
+    name: Rehan Daphedar
+    url: https://rehandaphedar.com
+  license:
+    name: AGPLv3
+    url: https://www.gnu.org/licenses/agpl-3.0.txt
+  version: 1.0.0
+tags:
+  - name: auth
+    description: Authentication related endpoints
+  - name: channel
+    description: Channel info related endpoints
+  - name: video
+    description: Video info related endpoints
+paths:
+  /auth:
+    post:
+      tags:
+        - auth
+      summary: "Register a new channel if one doesn't exist, otherwise log in."
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/authParams"
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/channelResponse"
+        "400":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/errorResponse"
+  /logout:
+    post:
+      tags:
+        - auth
+      summary: Logout of the current channel by clearing cookie.
+      responses:
+        "200":
+          description: Success
+  /channels:
+    get:
+      tags:
+        - channel
+      summary: Return a list of channels.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/channelResponse"
+        "500":
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/errorResponse"
+  /channel/{channelname}:
+    get:
+      parameters:
+        - name: channelname
+          in: path
+          required: true
+          description: The required channelname.
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 128
+      tags:
+        - channel
+      summary: Return channel matching given `channelname`.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/channelResponse"
+        "400":
+          description: Invalid channelname
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/errorResponse"
+  /channel:
+    get:
+      tags:
+        - channel
+      summary: Return the current logged in channel.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/channelResponse"
+        "401":
+          description: Not logged in
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/errorResponse"
+        "500":
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/errorResponse"
+    delete:
+      tags:
+        - channel
+      summary: Delete your channel.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/channelResponse"
+        "401":
+          description: Not logged in
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/errorResponse"
+        "500":
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/errorResponse"
+  /videos:
+    get:
+      tags:
+        - video
+      summary: Return a list of videos.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/videoResponse"
+        "500":
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/errorResponse"
+    post:
+      tags:
+        - video
+      summary: Upload a video.
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              "$ref": "#/components/schemas/videoParams"
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/videoResponse"
+        "400":
+          description: Invalid data
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/errorResponse"
+        "401":
+          description: Not logged in
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/errorResponse"
+        "500":
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/errorResponse"
+  /videos/byChannel/{channelname}:
+    get:
+      parameters:
+        - name: channelname
+          in: path
+          required: true
+          description: "The channelname for which to return videos."
+          schema:
+            type: string
+      tags:
+        - video
+      summary: Return a list of videos uploaded by the supplied channel.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/videoResponse"
+        "400":
+          description: Channel not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/errorResponse"
+  /video/{slug}:
+    get:
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          description: "The video's slug."
+          schema:
+            type: string
+      tags:
+        - video
+      summary: Return the video with slug `slug`.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/videoResponse"
+        "400":
+          description: "Video doesn't exist"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/errorResponse"
+    put:
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          description: "The video's slug."
+          schema:
+            type: string
+      tags:
+        - video
+      summary: Edit the video with slug `slug`.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/videoInternalParams"
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/videoResponse"
+        "400":
+          description: "Video doesn't exist"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/errorResponse"
+        "401":
+          description: Video not owned by requestor
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/errorResponse"
+    delete:
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          description: "The video's slug."
+          schema:
+            type: string
+      tags:
+        - video
+      summary: Delete the video with slug `slug`.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/videoResponse"
+        "400":
+          description: "Video doesn't exist"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/errorResponse"
+        "401":
+          description: Video not owned by requestor
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/errorResponse"
+components:
+  schemas:
+    authParams:
+      type: object
+      properties:
+        channelname:
+          type: string
+          minLength: 3
+          maxLength: 128
+        password:
+          type: string
+          format: password
+          minLength: 3
+          maxLength: 128
+      required:
+        - channelname
+        - password
+    channelResponse:
+      type: object
+      properties:
+        channelname:
+          type: string
+        created:
+          type: string
+          format: date-time
+      required:
+        - channelname
+        - created
+    errorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        error:
+          type: string
+    videoParams:
+      type: object
+      properties:
+        minv--video:
+          type: array
+          items:
+            type: string
+            format: binary
+        minv--data:
+          "$ref": "#/components/schemas/videoInternalParams"
+    videoInternalParams:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+      required:
+        - title
+        - description
+    videoResponse:
+      type: object
+      properties:
+        slug:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        uploader:
+          type: string
+        uploaded:
+          type: string
+          format: date-time
+      required:
+        - slug
+        - title
+        - description
+        - uploader
+        - uploaded
